@@ -1,0 +1,7 @@
+# Node.js
+node_modules/
+
+# SQLite database files
+*.db
+*.sqlite
+*.sqlite3
