@@ -2,6 +2,9 @@ const db = require("../db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCK_TIME = 30 * 60 * 1000; // 30 minutos
+
 const userResolvers = {
   Query: {
     users: () => {
@@ -80,11 +83,28 @@ const userResolvers = {
             if (!user) {
               reject(new Error("User not found"));
             } else {
+              const currentTime = new Date().getTime();
+              
+              // Verifica si el usuario está bloqueado
+              if (user.failedAttempts >= MAX_FAILED_ATTEMPTS) {
+                const timeSinceLastAttempt = currentTime - new Date(user.lastFailedAttempt).getTime();
+                if (timeSinceLastAttempt < LOCK_TIME) {
+                  const timeLeft = LOCK_TIME - timeSinceLastAttempt;
+                  reject(new Error(`La cuenta esta bloqueada. Intenta de nuevo en ${Math.ceil(timeLeft / 60000)} minuto (s).`));
+                } else {
+                  // Si el tiempo de bloqueo ha pasado, restablece los intentos
+                  db.run("UPDATE User SET failedAttempts = 0 WHERE email = ?", [email]);
+                }
+              }
+
               // Compara la contraseña proporcionada con la almacenada en la base de datos
               const match = await bcrypt.compare(password, user.password);
               if (!match) {
                 reject(new Error("Wrong credentials"));
               } else {
+                // Resetea el contador de intentos fallidos
+                db.run("UPDATE User SET failedAttempts = 0 WHERE email = ?", [email]);
+
                 // Token JWT
                 const token = jwt.sign({ userId: user.id }, "your_secret_key", {
                   expiresIn: "1h",

@@ -15,7 +15,9 @@ db.serialize(() => {
         password TEXT NOT NULL,
         profile TEXT NOT NULL,
         createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
-        active BOOLEAN NOT NULL
+        active BOOLEAN NOT NULL,
+        failedAttempts INTEGER DEFAULT 0,
+        lastFailedAttempt DATETIME
       )
     `);
   });

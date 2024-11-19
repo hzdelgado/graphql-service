@@ -9,7 +9,9 @@ const userSchema = gql`
     password: String,
     createdAt: String,
     profile: String,
-    active: Boolean
+    active: Boolean,
+    failedAttempts: Int,
+    lastFailedAttempt: String
   }
 
   type Query {
