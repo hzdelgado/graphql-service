@@ -13,7 +13,9 @@ db.serialize(() => {
         name TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
-        createdAt TEXT DEFAULT CURRENT_TIMESTAMP
+        profile TEXT NOT NULL,
+        createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
+        active BOOLEAN NOT NULL
       )
     `);
   });
