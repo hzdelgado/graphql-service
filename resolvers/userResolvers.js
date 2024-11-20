@@ -47,7 +47,7 @@ const userResolvers = {
             email,
             hashedPassword,
             new Date().toISOString(),
-            "OPERATOR",
+            "ADMIN",
             1,
           ],
           function (err) {
