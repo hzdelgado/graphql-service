@@ -9,13 +9,30 @@ const userResolvers = {
   Query: {
     users: () => {
       return new Promise((resolve, reject) => {
-        db.all("SELECT * FROM User WHERE active = 1", (err, rows) => {
+        db.all("SELECT * FROM User", (err, rows) => {
           if (err) {
             reject(err);
           } else {
             resolve(rows);
           }
         });
+      });
+    },
+    user: (_, { id }) => {
+      return new Promise((resolve, reject) => {
+        db.get(
+          "SELECT * FROM User WHERE id = ? AND active = 1",
+          [id],
+          (err, user) => {
+            if (err) {
+              reject(err);
+            } else if (!user) {
+              reject(new Error("Usuario no encontrado"));
+            } else {
+              resolve(user);
+            }
+          }
+        );
       });
     },
   },
@@ -72,6 +89,24 @@ const userResolvers = {
         );
       });
     },
+    updateUser: async (_, { input }) => {
+      const { id, active } = input;
+      return new Promise((resolve, reject) => {
+        db.run(
+          "UPDATE User SET active = ? WHERE id = ?",
+          [active, id],
+          function (err) {
+            if (err) {
+              reject(new Error("Error actualizando el usuario: " + err.message));
+            } else if (this.changes === 0) {
+              reject(new Error("Usuario no encontrado o no activo"));
+            } else {
+              resolve("Success");
+            }
+          }
+        );
+      });
+    },
     login: async (_, { email, password }) => {
       return new Promise((resolve, reject) => {
         db.get(
@@ -115,7 +150,7 @@ const userResolvers = {
                 const token = jwt.sign({ userId: user.id }, "your_secret_key", {
                   expiresIn: "1h",
                 });
-                
+
                 resolve({
                   email,
                   token,

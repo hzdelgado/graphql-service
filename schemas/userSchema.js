@@ -26,10 +26,14 @@ const userSchema = gql`
     userName: String!,
     profile: String!
   }
+  input UpdateUserInput {
+    id: ID!
+    active: Boolean
+  }
 
   type Mutation {
     addUser(name: String!, email: String!, password: String!): AuthResponse
-    deleteUser(id: ID!): User
+    updateUser(input: UpdateUserInput!): String
     login(email: String!, password: String!): AuthResponse 
   }
 `;
