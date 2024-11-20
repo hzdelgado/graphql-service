@@ -20,10 +20,11 @@ const userSchema = gql`
   }
 
   type AuthResponse {
-    token: String!
+    token: String!,
     email: String!,
     userId: String!,
     userName: String!,
+    profile: String!
   }
 
   type Mutation {

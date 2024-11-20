@@ -47,7 +47,7 @@ const userResolvers = {
             email,
             hashedPassword,
             new Date().toISOString(),
-            "ADMIN",
+            "ADMIN", //Se puede mejorar
             1,
           ],
           function (err) {
@@ -81,7 +81,7 @@ const userResolvers = {
               reject(err);
             }
             if (!user) {
-              reject(new Error("User not found"));
+              reject(new Error("Usuario no encontrado"));
             } else {
               const currentTime = new Date().getTime();
               
@@ -100,7 +100,12 @@ const userResolvers = {
               // Compara la contraseña proporcionada con la almacenada en la base de datos
               const match = await bcrypt.compare(password, user.password);
               if (!match) {
-                reject(new Error("Wrong credentials"));
+                // Incrementa el contador de intentos fallidos
+                db.run(
+                  "UPDATE User SET failedAttempts = failedAttempts + 1, lastFailedAttempt = ? WHERE email = ?",
+                  [new Date().toISOString(), email]
+                );
+                reject(new Error("Credenciales incorrectas"));
               } else {
                 // Resetea el contador de intentos fallidos
                 db.run("UPDATE User SET failedAttempts = 0 WHERE email = ?", [email]);
