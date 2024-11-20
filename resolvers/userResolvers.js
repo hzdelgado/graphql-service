@@ -54,6 +54,17 @@ const userResolvers = {
         throw new Error("El usuario ya existe");
       }
 
+      const adminExist = await new Promise((resolve, reject) => {
+        db.get("SELECT * FROM User WHERE profile = ?", ['ADMIN'], (err, row) => {
+          if (err) {
+            return reject(err); // Manejar error en la consulta
+          }
+          resolve(row); // Devuelve el usuario encontrado o null si no existe
+        });
+      });
+
+      const profile =  adminExist? 'OPERATOR': 'ADMIN';
+
       return new Promise((resolve, reject) => {
         const stmt = db.prepare(
           "INSERT INTO User (name, email, password, createdAt, profile, active) VALUES (?, ?, ?, ?, ?, ?)"
@@ -64,7 +75,7 @@ const userResolvers = {
             email,
             hashedPassword,
             new Date().toISOString(),
-            "ADMIN", //Se puede mejorar
+            profile, //Se puede mejorar
             1,
           ],
           function (err) {
@@ -82,7 +93,7 @@ const userResolvers = {
                 userName: name,
                 email,
                 token,
-                profile: 'ADMIN'
+                profile: profile
               });
             }
           }
@@ -110,8 +121,8 @@ const userResolvers = {
     login: async (_, { email, password }) => {
       return new Promise((resolve, reject) => {
         db.get(
-          "SELECT * FROM User WHERE email = ? AND active = ?",
-          [email, 1],
+          "SELECT * FROM User WHERE email = ?",
+          [email],
           async (err, user) => {
             if (err) {
               reject(err);
@@ -119,6 +130,14 @@ const userResolvers = {
             if (!user) {
               reject(new Error("Usuario no encontrado"));
             } else {
+              console.log('userrr', user)
+              if(!user.active) {
+                if(user.profile === 'OPERATOR') {
+                  reject(new Error("Permiso denegado"));
+                } else {
+                  reject(new Error("Usuario no encontrado"));
+                }
+              }
               const currentTime = new Date().getTime();
               
               // Verifica si el usuario está bloqueado
