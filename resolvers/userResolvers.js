@@ -65,6 +65,7 @@ const userResolvers = {
                 userName: name,
                 email,
                 token,
+                profile: 'ADMIN'
               });
             }
           }
@@ -114,11 +115,13 @@ const userResolvers = {
                 const token = jwt.sign({ userId: user.id }, "your_secret_key", {
                   expiresIn: "1h",
                 });
+                
                 resolve({
                   email,
                   token,
                   userId: user.id,
                   userName: user.name,
+                  profile: user.profile
                 });
               }
             }
