@@ -4,12 +4,17 @@ const jwt = require("jsonwebtoken");
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCK_TIME = 30 * 60 * 1000; // 30 minutos
+const SECRET_KEY = process.env.JWT_SECRET_KEY;
 
 const userResolvers = {
   Query: {
-    users: () => {
+    users: async (_, __, { user }) => {
+      if (!user) {
+        throw new Error("No estás autorizado");
+      }
       return new Promise((resolve, reject) => {
-        db.all("SELECT * FROM User", (err, rows) => {
+        // Excluye el usuario actual (del token) con un WHERE que no incluya su userId
+        db.all("SELECT * FROM User WHERE id != ?", [user.userId], (err, rows) => {
           if (err) {
             reject(err);
           } else {
@@ -18,7 +23,10 @@ const userResolvers = {
         });
       });
     },
-    user: (_, { id }) => {
+    user: (_, { id }, { user }) => {
+      if (!user) {
+        throw new Error("No estás autorizado");
+      }
       return new Promise((resolve, reject) => {
         db.get(
           "SELECT * FROM User WHERE id = ? AND active = 1",
@@ -84,7 +92,7 @@ const userResolvers = {
             } else {
               const token = jwt.sign(
                 { userId: this.lastID },
-                "your_secret_key",
+                SECRET_KEY,
                 { expiresIn: "1h" }
               );
 
@@ -100,7 +108,11 @@ const userResolvers = {
         );
       });
     },
-    updateUser: async (_, { input }) => {
+    updateUser: async (_, { input }, { user }) => {
+      if (!user) {
+        throw new Error("No estás autorizado");
+      }
+
       const { id, active } = input;
       return new Promise((resolve, reject) => {
         db.run(
@@ -130,8 +142,10 @@ const userResolvers = {
             if (!user) {
               reject(new Error("Usuario no encontrado"));
             } else {
-              console.log('userrr', user)
+              console.log('user.active', user)
               if(!user.active) {
+                console.log('user.active', 'NO')
+
                 if(user.profile === 'OPERATOR') {
                   reject(new Error("Permiso denegado"));
                 } else {
@@ -166,7 +180,7 @@ const userResolvers = {
                 db.run("UPDATE User SET failedAttempts = 0 WHERE email = ?", [email]);
 
                 // Token JWT
-                const token = jwt.sign({ userId: user.id }, "your_secret_key", {
+                const token = jwt.sign({ userId: user.id }, SECRET_KEY, {
                   expiresIn: "1h",
                 });
 
