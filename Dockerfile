@@ -23,4 +23,4 @@ COPY . .
 EXPOSE 4000
 
 # Comando por defecto
-CMD ["node", "index.js"]
+CMD ["npm", "start"]

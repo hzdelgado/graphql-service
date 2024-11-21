@@ -70,11 +70,16 @@ const userResolvers = {
         throw new Error("No estás autorizado");
       }
 
-      const { id, active } = input;
+      const { id, active, profile } = input;
+      const activeValue = active ? 1 : 0;
+
+      if (typeof profile !== 'string') {
+        throw new Error("El perfil debe ser una cadena de texto");
+      }
 
       try {
-        const stmt = db.prepare("UPDATE User SET active = ? WHERE id = ?");
-        const result = stmt.run(active, id);
+        const stmt = db.prepare("UPDATE User SET active = ?, profile = ? WHERE id = ?");
+        const result = stmt.run(activeValue, profile, id);
 
         if (result.changes === 0) {
           throw new Error("Usuario no encontrado o no activo");

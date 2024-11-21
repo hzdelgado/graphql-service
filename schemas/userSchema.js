@@ -29,6 +29,7 @@ const userSchema = gql`
   input UpdateUserInput {
     id: ID!
     active: Boolean
+    profile: String
   }
 
   type Mutation {
