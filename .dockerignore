@@ -6,7 +6,9 @@ node_modules
 
 # Archivos del sistema operativo
 .DS_Store
+npm-debug.log
 Thumbs.db
+.git
 
 # Archivos de configuración de editor
 .vscode/
