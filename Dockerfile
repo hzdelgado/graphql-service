@@ -9,8 +9,8 @@ ARG JWT_SECRET_KEY
 ARG PORT
 
 # Configurar variables de entorno en el contenedor
-ENV JWT_SECRET_KEY=${JWT_SECRET_KEY}
-ENV PORT=${PORT}
+ENV JWT_SECRET_KEY=$JWT_SECRET_KEY
+ENV PORT=$PORT
 
 # Copia los archivos del proyecto
 COPY package*.json ./
@@ -22,7 +22,7 @@ RUN npm install
 COPY . .
 
 # Usa la variable PORT para exponer dinámicamente el puerto
-EXPOSE ${PORT}
+EXPOSE $PORT
 
 # Comando por defecto
 CMD ["npm", "start"]
